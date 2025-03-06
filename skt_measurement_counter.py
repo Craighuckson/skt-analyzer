@@ -34,6 +34,7 @@ def extract_measurements_and_streets(filename):
         'Plaza', 'Plz',
         'Square', 'Sq',
         'Terrace', 'Ter'
+        'Crescent', 'Cres'
     ]
 
     # Define the pattern to look for street names with suffixes or abbreviations
