@@ -2,65 +2,54 @@ import re
 import tkinter as tk
 from tkinter import filedialog
 
-def extract_measurements_and_streets(filename):
-    measurements = []
-    streets = []
+import re
 
-    # Open the binary file in read mode
+def read_file_content(filename):
     with open(filename, 'rb') as file:
-        # Read the entire binary content
-        content = file.read()
-    
-    # Define the pattern to look for measurements, allowing for optional preceding bytes and optional bytes before 'm' or 'M'
+        return file.read()
+
+def find_measurements(content):
+    measurements = []
     measurement_pattern = re.compile(rb'\d+\x00\.\x00\d+\x00\s?\x00?[mM]\x00', re.IGNORECASE)
-    
-    # Find all measurements in the content
     measurement_matches = measurement_pattern.findall(content)
-    
-    # Decode the matched binary strings to text for measurements
     for match in measurement_matches:
         decoded_match = match.decode('utf-16-le')
         measurements.append(decoded_match.strip())
+    return measurements
 
-    # Define a list of common street suffixes and their abbreviations
+def find_streets(content):
+    streets = []
     street_suffixes = [
-        'Street', 'St',
-        'Avenue', 'Ave',
-        'Road', 'Rd',
-        'Boulevard', 'Blvd',
-        'Drive', 'Dr',
-        'Lane', 'Ln',
-        'Court', 'Ct',
-        'Plaza', 'Plz',
-        'Square', 'Sq',
-        'Terrace', 'Ter'
-        'Crescent', 'Cres'
+        'Street', 'St', 'Avenue', 'Ave', 'Road', 'Rd', 'Boulevard', 'Blvd',
+        'Drive', 'Dr', 'Lane', 'Ln', 'Court', 'Ct', 'Plaza', 'Plz', 'Square', 'Sq',
+        'Terrace', 'Ter', 'Crescent', 'Cres'
     ]
-
-    # Define the pattern to look for street names with suffixes or abbreviations
     street_pattern = re.compile(r'\b[A-Za-z]+(?:\s[A-Za-z]+)*(?:\s(?:{})\b)'.format('|'.join(street_suffixes)), re.IGNORECASE)
-    
-    # Convert content to string and decode for text search
     decoded_content = content.decode('utf-16-le', errors='ignore')
-
-    # Find all street names in the content
     street_matches = street_pattern.findall(decoded_content)
-    
-    # Add the matched street names to the list
     streets.extend(street_matches)
+    return streets
 
-    # Determine complexity level based on the number of measurements found
+def determine_complexity(measurements):
     count_measurements = len(measurements)
     if count_measurements == 0:
-        complexity = "Clear"
+        return "Clear"
     elif 1 <= count_measurements <= 3:
-        complexity = "Simple"
+        return "Simple"
     elif 4 <= count_measurements <= 8:
-        complexity = "Moderate"
+        return "Moderate"
     else:
-        complexity is "Complex"
+        return "Complex"
 
-    return count_measurements, measurements, complexity, len(streets), streets
+def extract_measurements_and_streets(filename):
+    content = read_file_content(filename)
+    measurements = find_measurements(content)
+    streets = find_streets(content)
+    complexity = determine_complexity(measurements)
+    return len(measurements), measurements, complexity, len(streets), streets
+
+
+
 
 def select_file():
     # Open file dialog to select a file
